@@ -43,14 +43,14 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Unpack v0.3 project
+      - name: Unpack v0.3.1 project
         run: |
-          ZIP_FILE="$(find . -maxdepth 1 -type f -name 'WirelessDataManager-v0.3-src*.zip' | head -n 1)"
+          ZIP_FILE="$(find . -maxdepth 1 -type f -name 'WirelessDataManager-v0.3.1-src*.zip' | head -n 1)"
 
           echo "Using ZIP: $ZIP_FILE"
 
           if [ -z "$ZIP_FILE" ]; then
-            echo "WirelessDataManager v0.3 source ZIP not found"
+            echo "WirelessDataManager v0.3.1 source ZIP not found"
             exit 1
           fi
 
@@ -89,7 +89,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: WirelessDataManager-v0.3-debug
+          name: WirelessDataManager-v0.3.1-debug
           path: buildsrc/WirelessDataManager/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
