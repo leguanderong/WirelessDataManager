@@ -30,7 +30,9 @@ jobs:
       - name: Install Android SDK 36
         run: |
           export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
+
           yes | sdkmanager --licenses >/dev/null || true
+
           sdkmanager \
             "platform-tools" \
             "platforms;android-36" \
@@ -41,30 +43,53 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Unpack project
+      - name: Unpack v0.3 project
         run: |
-          ZIP_FILE="$(find . -maxdepth 1 -type f -name 'WirelessDataManager-v0.2-src*.zip' | head -n 1)"
-          echo "ZIP: $ZIP_FILE"
-          test -n "$ZIP_FILE"
+          ZIP_FILE="$(find . -maxdepth 1 -type f -name 'WirelessDataManager-v0.3-src*.zip' | head -n 1)"
+
+          echo "Using ZIP: $ZIP_FILE"
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "WirelessDataManager v0.3 source ZIP not found"
+            exit 1
+          fi
 
           rm -rf buildsrc
           mkdir -p buildsrc
+
           unzip -q "$ZIP_FILE" -d buildsrc
 
-          echo "=== Project files ==="
+          echo "=== Extracted files ==="
           find buildsrc -maxdepth 3 -type f | head -100
 
-          test -f buildsrc/WirelessDataManager/settings.gradle
+          if [ ! -f buildsrc/WirelessDataManager/settings.gradle ]; then
+            echo "settings.gradle not found"
+            echo "Extracted directory structure:"
+            find buildsrc -maxdepth 3 -type d
+            exit 1
+          fi
 
       - name: Build debug APK
         working-directory: buildsrc/WirelessDataManager
         run: |
           gradle :app:assembleDebug --stacktrace
 
+      - name: Verify APK
+        run: |
+          APK="buildsrc/WirelessDataManager/app/build/outputs/apk/debug/app-debug.apk"
+
+          if [ ! -f "$APK" ]; then
+            echo "APK build output not found"
+            exit 1
+          fi
+
+          echo "APK generated:"
+          ls -lh "$APK"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: WirelessDataManager-v0.2-debug
+          name: WirelessDataManager-v0.3-debug
           path: buildsrc/WirelessDataManager/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
